@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lê Khắc Trung♡</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+      height: 100vh;
+      perspective: 1000px;
+      font-family: 'Segoe UI', sans-serif;
+      touch-action: none;
+    }
+
+    .falling {
+      position: absolute;
+      color: white;
+      font-size: 22px;
+      pointer-events: auto;
+      white-space: nowrap;
+      animation: glow 2s infinite ease-in-out;
+      text-shadow: 0 0 5px #fff, 0 0 10px #ff69b4, 0 0 20px #ff69b4;
+      transform-style: preserve-3d;
+      cursor: grab;
+    }
+
+    .heart {
+      color: red;
+      font-size: 24px;
+      text-shadow: 0 0 5px #ff0000, 0 0 10px #ff4d4d, 0 0 20px #ff4d4d;
+    }
+
+    @keyframes glow {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<script>
+const messages = [
+  "Khắc Trung♡",
+  "Cảm ơn vì em đã đến❤️",
+  "Yêu em nhiều❤️",
+  "Cảm ơn vì đã đến bên anh❤️",
+  "Anh yêu em❤️"
+];
+let fallingObjects = [];
+const maxObjects = 150;
+
+function createFalling() {
+  if (fallingObjects.length >= maxObjects) return;
+
+  const el = document.createElement("div");
+  const isHeart = Math.random() < 0.3;
+  el.className = "falling";
+  el.innerText = isHeart ? "❤️" : messages[Math.floor(Math.random() * messages.length)];
+  if (isHeart) el.classList.add("heart");
+
+  const depth = Math.random() * 600;
+  const x = Math.random() * window.innerWidth;
+  const y = -30;
+  const speed = 2 + Math.random() * 2;
+
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+  el.style.fontSize = (isHeart ? 20 + Math.random() * 10 : 22 + Math.random() * 6) + "px";
+  el.style.transform = `translateZ(${-depth}px)`;
+
+  document.body.appendChild(el);
+
+  const obj = { el, x, y, speed, depth, isDragging: false };
+  enableDrag(obj);
+  fallingObjects.push(obj);
+}
+
+function updateFalling() {
+  fallingObjects.forEach(obj => {
+    if (!obj.isDragging) {
+      obj.y += obj.speed;
+      obj.el.style.top = obj.y + "px";
+    }
+  });
+
+  fallingObjects = fallingObjects.filter(obj => {
+    if (obj.y > window.innerHeight + 50) {
+      obj.el.remove();
+      return false;
+    }
+    return true;
+  });
+}
+
+setInterval(() => {
+  for (let i = 0; i < 4; i++) createFalling();
+}, 150);
+
+setInterval(updateFalling, 16);
+
+function enableDrag(obj) {
+  let offsetX = 0, offsetY = 0;
+
+  function startDrag(e) {
+    obj.isDragging = true;
+    obj.el.style.cursor = "grabbing";
+    const rect = obj.el.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+    e.preventDefault();
+  }
+
+  function drag(e) {
+    if (!obj.isDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    obj.x = clientX - offsetX;
+    obj.y = clientY - offsetY;
+    obj.el.style.left = obj.x + "px";
+    obj.el.style.top = obj.y + "px";
+  }
+
+  function endDrag() {
+    obj.isDragging = false;
+    obj.el.style.cursor = "grab";
+  }
+
+  obj.el.addEventListener("mousedown", startDrag);
+  document.addEventListener("mousemove", drag);
+  document.addEventListener("mouseup", endDrag);
+
+  obj.el.addEventListener("touchstart", startDrag);
+  document.addEventListener("touchmove", drag);
+  document.addEventListener("touchend", endDrag);
+}
+
+// Nghiêng theo cảm biến thiết bị
+window.addEventListener('deviceorientation', (e) => {
+  const rotateX = e.beta ? e.beta - 60 : 0;
+  const rotateY = e.gamma || 0;
+  document.body.style.transform = `rotateX(${rotateX / 2.5}deg) rotateY(${rotateY / 2.5}deg)`;
+});
+
+// Nghiêng theo chuột (PC)
+document.addEventListener("mousemove", (e) => {
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
+  const percentX = e.clientX / vw - 0.5;
+  const percentY = e.clientY / vh - 0.5;
+  document.body.style.transform = `rotateY(${percentX * 25}deg) rotateX(${-percentY * 35}deg)`;
+});
+
+// Nghiêng theo vuốt tay (mobile)
+document.addEventListener("touchmove", (e) => {
+  if (e.touches.length === 1) {
+    const touch = e.touches[0];
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+    const percentX = touch.clientX / vw - 0.5;
+    const percentY = touch.clientY / vh - 0.5;
+    document.body.style.transform = `rotateY(${percentX * 25}deg) rotateX(${-percentY * 35}deg)`;
+  }
+}, { passive: true });
+</script>
+
+</body>
+</html>
